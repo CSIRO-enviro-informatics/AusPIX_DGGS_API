@@ -1,31 +1,36 @@
 import logging
 import _config as conf
-from flask import Flask
-from controller import DGGS
+from flask import Flask, Blueprint
+from flask_restx import Api, Resource, fields
 from flask_cors import CORS
-from flask_swagger_ui import get_swaggerui_blueprint
 from werkzeug.middleware.proxy_fix import ProxyFix
+# from auspixdggs import dggs_engine_api
 
 
 app = Flask(__name__, template_folder=conf.TEMPLATES_DIR, static_folder=conf.STATIC_DIR)
 CORS(app)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
+blueprint = Blueprint('api', __name__, url_prefix="/api")
+api = Api(blueprint,  doc="/doc/", version='0.1', title="DGGS Engine", description="")
+app.register_blueprint(blueprint)
 
 
-app.register_blueprint(DGGS.DGGS)
+@api.route('/find_dggs_for_a_point')
+@api.doc(params={})
+class FindDGGSForPoint(Resource):
+    pointWithResolution = api.model('point', {
+        'lat': fields.Float,
+        'long': fields.Float,
+        'resolution': fields.Integer
+    })
+    def get(self):
+        return {}
+    @api.expect(pointWithResolution)
+    def post(self):
+        print('find_dggs_for_a_point')
+        # answer = point_DGGSvalue.latlong_to_DGGS((148.9668333, -35.38275), 12)
+        return {}
 
-### swagger specific ###
-SWAGGER_URL = '/api/doc'
-API_URL = '/static/openapi.json'
-SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': "DGGS Engine"
-    }
-)
-app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
-### end swagger specific ###
 
 
 # run the Flask app
