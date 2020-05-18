@@ -1,0 +1,7 @@
+requests
+flask
+geojson
+flask-cors
+flask_swagger_ui
+flask-restplus
+Werkzeug
