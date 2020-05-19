@@ -4,4 +4,4 @@ geojson
 flask-cors
 flask-restx
 Werkzeug
-git+https://github.com/GeoscienceAustralia/AusPIX_DGGS.git#egg=AusPIX_DGGS
+git+https://github.com/jevy-wangfei/AusPIX_DGGS.git#egg=AusPIX_DGGS
