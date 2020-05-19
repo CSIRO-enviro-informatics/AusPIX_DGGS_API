@@ -14,6 +14,8 @@ $ docker-compose up -d
 
 The API should be running on http://localhost:3000
 
+Access API Doc at http://localhost:3000/api/doc/
+
 ### docker
 
 Build and run using just docker as per below.
@@ -24,4 +26,6 @@ $ docker build --tag auspixdggs:0.1 .
 $ docker run -p 3000:3000 -d --name auspixdggs auspixdggs:0.1
 ```
 
-The API should be running on http://localhost:3000
+The API should be running on http://localhost:3000/
+
+Access API Doc at http://localhost:3000/api/doc/
