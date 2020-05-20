@@ -14,10 +14,9 @@ pointerParser.add_argument('epsg', type=int, required=True, help='spsg code, suc
 pointerParser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12], help='DGGS Resolution 1 to 12')
 
 @api.route('/find_dggs_for_a_point')
-@api.doc(params={})
 class FindDGGSForPoint(Resource):
     @api.doc(parser=pointerParser)
-    def post(self):
+    def get(self):
         args = pointerParser.parse_args()
         try:
             epsg_from = "epsg:{}".format(args['epsg'])
@@ -32,7 +31,7 @@ class FindDGGSForPoint(Resource):
             for k, v in answer.neighbors().items():
                 neighbors.append(str(v))
             return {
-                        "cellId": str(answer),
+                        "cell_id": str(answer),
                         "sub_cells": sub_cells,
                         "neighbors": neighbors
                     }
