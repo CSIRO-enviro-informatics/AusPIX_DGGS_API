@@ -2,7 +2,7 @@
 from flask import Flask, Blueprint
 from flask_restx import Namespace, Resource, reqparse
 from auspixdggs.callablemodules.point_DGGSvalue import latlong_to_DGGS
-from pyproj import CRS, transform, exceptions
+from pyproj import Transformer, exceptions
 import json
 
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
@@ -20,10 +20,12 @@ class FindDGGSForPoint(Resource):
     def post(self):
         args = pointerParser.parse_args()
         try:
-            crs_from = CRS.from_epsg(args['epsg'])
-            crs_to = CRS.from_epsg('4326')
-            latlong = transform(crs_from, crs_to, args['x'], args['y'])
+            epsg_from = "epsg:{}".format(args['epsg'])
+            epsg_to= "epsg:{}".format(4326)
+            transformer = Transformer.from_crs(epsg_from, epsg_to)
+            latlong = transformer.transform(args['x'], args['y'])
             answer = latlong_to_DGGS(latlong, args['resolution'])
+
             sub_cells = []
             for cell in answer.subcells():
                 sub_cells.append(str(cell))
