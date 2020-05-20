@@ -22,10 +22,9 @@ class FindDGGSForPoint(Resource):
         try:
             epsg_from = "epsg:{}".format(args['epsg'])
             epsg_to= "epsg:{}".format(4326)
-            transformer = Transformer.from_crs(epsg_from, epsg_to)
-            latlong = transformer.transform(args['x'], args['y'])
+            transformer = Transformer.from_crs(epsg_from, epsg_to, always_xy=True)
+            latlong = transformer.transform( args['x'], args['y'])
             answer = latlong_to_DGGS(latlong, args['resolution'])
-
             sub_cells = []
             for cell in answer.subcells():
                 sub_cells.append(str(cell))
