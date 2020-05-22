@@ -1,8 +1,10 @@
 requests
+matplotlib
 flask
 geojson
 flask-cors
 flask-restx
 Werkzeug
 pyproj
+shapely
 git+https://github.com/jevy-wangfei/AusPIX_DGGS.git#egg=AusPIX_DGGS

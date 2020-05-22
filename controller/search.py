@@ -1,37 +1,22 @@
 
 from flask import Flask, Blueprint, request
 from flask_restx import Namespace, Resource, reqparse, fields
-from auspixdggs.callablemodules.point_DGGSvalue import latlong_to_DGGS
 from pyproj import Transformer, exceptions
-from pyshp import shapefile
+from geojson.utils import coords
+from shapely.geometry import Polygon, shape
+from auspixdggs.callablemodules.point_DGGSvalue import latlong_to_DGGS
+from auspixdggs.callablemodules.call_DGGS import poly_to_DGGS_tool
 import json
 
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
 
-
-bounding_box = api.model('BoundingBox', {
-    'x_lat': fields.Float(),
-    'y_lat': fields.Float(),
-    'x_lng': fields.Float(),
-    'y_lng': fields.Float(),
-})
-
 polygon = api.model('PolygonGeometry', {
     'type': fields.String(required=True, default="Polygon"),
     'coordinates': fields.List(
-        fields.List(fields.Float, required=True, type="Array"),
-        required=True, type="Array",
-        default=[[13.4197998046875, 52.52624809700062],
-                 [13.387527465820312, 52.53084314728766],
-                 [13.366928100585938, 52.50535544522142],
-                 [13.419113159179688, 52.501175722709434],
-                 [13.4197998046875, 52.52624809700062]]
-     )
-})
-
-polygon_feature = api.model('PolygonFeature', {
-    'type': fields.String(default="Feature", require=True),
-    'geometry': fields.Nested(polygon, required=True)
+        fields.List(
+            fields.List(fields.Float, required=True, type="Array"),
+            required=True, type="Array"
+     ))
 })
 
 linestring = api.model('LineStringGeometry', {
@@ -39,31 +24,8 @@ linestring = api.model('LineStringGeometry', {
     'coordinates': fields.List(
         fields.List(fields.Float, required=True, type="Array"),
         required=True,
-        type="Array",
-        default=[[13.420143127441406, 52.515594085869914],
-                 [13.421173095703125, 52.50535544522142],
-                 [13.421173095703125, 52.49532344352079]]
+        type="Array"
      )
-})
-
-linestring_feature = api.model('LineStringFeature', {
-    'type': fields.String(default="Feature", require=True),
-    'geometry': fields.Nested(linestring, required=True)
-})
-
-point = api.model('PointGeometry', {
-    'type': fields.String(required=True, default="Point"),
-    'coordinates': fields.List(
-        fields.List(fields.Float, required=True, type="Array"),
-        required=True,
-        type="Array",
-        default=[13.421173095703125, 52.49532344352079]
-     )
-})
-
-point_feature = api.model('PointFeature', {
-    'type': fields.String(default="Feature", require=True),
-    'geometry': fields.Nested(point, required=True)
 })
 
 pointerParser = reqparse.RequestParser()
@@ -89,8 +51,13 @@ class FindDGGSForPoint(Resource):
             neighbors = []
             for k, v in answer.neighbors().items():
                 neighbors.append(str(v))
+            meta = {
+                "point": (args['x'], args['y']),
+                "epsg": args['epsg']
+            }
             return {
-                        "cell_id": str(answer),
+                        "meta": meta,
+                        "dggs_cell_id": str(answer),
                         "sub_cells": sub_cells,
                         "neighbors": neighbors
                     }
@@ -103,20 +70,36 @@ resolutionParser.add_argument('resolution', type=int, required=True, choices=[1,
 @api.route('/find_dggs_for_a_line')
 @api.doc(parser=resolutionParser)
 class FindDGGSForALine(Resource):
-    @api.expect(linestring_feature,  validate=True)
+    @api.expect(linestring,  validate=True)
     def post(self):
         # no find dggs for a line function found at DGGS Engine
         pass
 
+def bbox(coord_list):
+     box = []
+     for i in (0,1):
+         res = sorted(coord_list, key=lambda x:x[i])
+         box.append((res[0][i],res[-1][i]))
+     ret = [ box[0][0], box[1][0], box[0][1], box[1][1] ]
+     return ret
 @api.route('/find_dggs_cells_within_polygon')
 @api.doc(parser=resolutionParser)
 class FindDGGSForALine(Resource):
-    @api.expect(polygon_feature,  validate=True)
+    @api.expect(polygon,  validate=True)
     def post(self):
         args = resolutionParser.parse_args()
-        print(args)
-        print(request.json)
-        pass
+        polygon = shape(request.json)
+        polygon.bbox = bbox(list(coords(request.json)))
+        polygon.points = request.json['coordinates'][0]
+        cells = poly_to_DGGS_tool(polygon, '', args.resolution) 
+        meta = {
+            "count": len(cells),
+            "polygon": request.json
+        }
+        return {
+            "meta": meta,
+            "dggs_cells": cells
+        }
 
 
 
