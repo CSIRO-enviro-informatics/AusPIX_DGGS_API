@@ -31,12 +31,12 @@
       },
       {
          "type": "file",
-         "source": "../certs/wildcard-loci-cat.pem",
+         "source": "../../../certs/wildcard-loci-cat.pem",
          "destination": "/tmp/wildcard-loci-cat.pem"
       },
       {
          "type": "file",
-         "source": "../certs/wildcard-loci-cat.bundle.pem",
+         "source": "../../../certs/wildcard-loci-cat.bundle.pem",
          "destination": "/tmp/wildcard-loci-cat.bundle.pem"
       },
       {

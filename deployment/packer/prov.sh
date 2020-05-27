@@ -10,6 +10,7 @@ echo "vm.max_map_count=262144" >> /etc/sysctl.d/98-sysctl.conf
 usermod -a -G docker ec2-user
 git clone --single-branch --branch deployment https://github.com/CSIRO-enviro-informatics/AusPIX_DGGS_API.git
 mv /tmp/instance.sh  /var/lib/cloud/scripts/per-instance/instance.sh
+mkdir /home/ec2-user/AusPIX_DGGS_API/certs/
 mv /tmp/wildcard-loci-cat.bundle.pem /home/ec2-user/AusPIX_DGGS_API/certs/
 mv /tmp/wildcard-loci-cat.pem /home/ec2-user/AusPIX_DGGS_API/certs/
 ls -la /home/ec2-user/AusPIX_DGGS_API/certs/

@@ -3,8 +3,6 @@ version: '3.7'
 services:
   dggsapi:
     build: .
-    ports: 
-      - "8080:3000"
   caddy:
     image: abiosoft/caddy
     ports:
@@ -15,5 +13,5 @@ services:
       - ./Caddyfile:/etc/Caddyfile
       - ./certs:/etc/ssl
     links:
-      - api
+      - dggsapi
     restart: always
