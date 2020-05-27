@@ -1,0 +1,7 @@
+*.loci.cat {
+    tls /etc/ssl/wildcard-loci-cat.bundle.pem /etc/ssl/wildcard-loci-cat.pem
+    proxy / http://dggsapi:8080 {
+      transparent
+    }
+    cors
+}

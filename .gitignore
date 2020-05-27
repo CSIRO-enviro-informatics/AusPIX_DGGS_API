@@ -1,5 +1,7 @@
+secrets.tf
 log.txt
 .venv
+.venv3/
 .cache
 .pytest_cache
 __pycache__
