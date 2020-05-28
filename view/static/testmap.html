@@ -70,6 +70,30 @@
 }
       </pre>
     </div>
+    <div class='column'>
+      <h2>DGGS Output</h3>
+      <div>
+         <label for="dggsResolution">Choose a resolution:</label>
+         <select name="dggsResolution" id="dggsResolution">
+           <option value="1">1</option>
+           <option value="2">2</option>
+           <option value="3">3</option>
+           <option value="4">4</option>
+           <option value="5" selected>5</option>
+           <option value="6">6</option>
+           <option value="7">7</option>
+           <option value="8">8</option>
+           <option value="9">9</option>
+           <option value="10">10</option>
+           <option value="11">11</option>
+           <option value="12">12</option>
+         </select>
+      </div>
+      <pre id="dggscells-display">
+      </pre>
+    </div>
+  </div>
+</div>
   </div>
 </div>
 
@@ -80,18 +104,22 @@
       "features": []
    };
 
+   var dggsCellSet = new Set();
+
    function clearMapLayers(map, featureGroup, callback) {
       var c = {
          "type": "FeatureCollection",
          "features": []
       };
       // Iterate the layers of the map
-      map.eachLayer(function (layer) {
-          map.removeLayer(layer);
+      featureGroup.eachLayer(function (layer) {
+          featureGroup.removeLayer(layer);
       });
       var strGeojson = JSON.stringify(c, undefined, 4);
       console.log(strGeojson); 
       $("#geojson-display").text(strGeojson)
+      dggsCellSet = new Set();
+      updateDggsResults();
       callback();
       console.log(c);
       return c;
@@ -106,6 +134,16 @@
        }
        return false;
     }
+   function updateDggsResults() {
+      $("#dggscells-display").empty();
+      for (let item of dggsCellSet) {
+         console.log(item);
+         $("#dggscells-display").append("<a href='http://ec2-52-63-73-113.ap-southeast-2.compute.amazonaws.com/AusPIX-DGGS-dataset/ausPIX/" + item + "'>" + item + "</a><br/>");
+      }
+
+      //var strDggsCells = JSON.stringify(Array.from(dggsCellSet), undefined, 4);
+      //console.log(strDggsCells); 
+   }
 
    function updateGeojson(map, featureGroup, geojson, callback) {
       var c = {
@@ -122,8 +160,14 @@
               // Push GeoJSON object to collection
               if(! containsObject(geojson, c.features)) {
                   c.features.push(geojson);
+                  var latlng = layer.getLatLng();
+                  query_dggs_for_point(latlng.lng, latlng.lat, function(data) {
+                     console.log("in updateGeojson");
+                     console.log(data);
+                     dggsCellSet.add(data);
+                     updateDggsResults();
+                  })
               }
-              
           }
           else if (layer instanceof L.Polyline) {
               // Create GeoJSON object from marker
@@ -145,6 +189,26 @@
       console.log(c);
       return c;
    }
+
+   function query_dggs_for_point(x, y, callback) {
+       var dggsResolution = $( "#dggsResolution" ).val();
+
+       var params = {
+         x: x,
+         y: y,
+         resolution: dggsResolution,
+         epsg: 4326
+       };
+       $.get( "/api/search/find_dggs_for_a_point", params )
+          .done(function( data ) {
+             var cellId = undefined
+             if ('cell_id' in data) {
+                cellId = data['cell_id'];
+             }
+             callback(cellId);
+       });
+   }
+   
 
 	var mymap = L.map('mapid').setView([ -35.5523399441562, 148.85101318359375 ], 9);
 
