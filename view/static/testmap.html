@@ -48,6 +48,20 @@
   flex: 1;
 }
 
+.notloading {
+}
+.loading {
+   min-width: 32px;
+	min-height: 32px;
+	background-repeat: no-repeat;
+   background-image: url(data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==);
+}
+textarea {
+    resize: none;
+    width: 90%;
+    height: 80vh;
+}
+
 </style>
 
 </head>
@@ -63,12 +77,12 @@
          <button id="btnReset">Reset</button>
          <button id="btnSend">Get DGGS Cells</button>
       </div>
-      <pre id="geojson-display">
+      <textarea id="geojson-display">
 {
   "type": "FeatureCollection",
   "features": []
 }
-      </pre>
+      </textarea>
     </div>
     <div class='column'>
       <h2>DGGS Output</h3>
@@ -89,6 +103,7 @@
            <option value="12">12</option>
          </select>
       </div>
+      <div id="loading" class="loading"><p>Loading</p></div>
       <pre id="dggscells-display">
       </pre>
     </div>
@@ -99,6 +114,8 @@
 
 
 <script>
+   var start_query_time = 0;
+   var end_query_time = 0;
    var collection = {
       "type": "FeatureCollection",
       "features": []
@@ -142,11 +159,20 @@
         });
    }
    function updateDggsResults() {
+      hideLoader();
+      enableSelectResolution();
+      end_query_time = performance.now();
+      elapsedTime = end_query_time - start_query_time;
+      elapsedSeconds = parseFloat( (elapsedTime / 1000).toFixed(4));
+
       $("#dggscells-display").empty();
+      $("#dggscells-display").append("Number of cells: " + dggsCellSet.size + "<br/>");
+      $("#dggscells-display").append("Execution time (seconds): " + elapsedSeconds + "<br/>");
       for (let item of dggsCellSet) {
          console.log(item);
          $("#dggscells-display").append("<a href='http://ec2-52-63-73-113.ap-southeast-2.compute.amazonaws.com/AusPIX-DGGS-dataset/ausPIX/" + item + "'>" + item + "</a><br/>");
       }
+      
    }
 
    function updateGeojson(map, featureGroup, geojson, callback) {
@@ -163,7 +189,8 @@
               var geojson = layer.toGeoJSON();
               // Push GeoJSON object to collection
               if(! containsObject(geojson, c.features)) {
-                  c.features.push(geojson);
+                  //comment this out as API doesn't handle points yet
+                  //c.features.push(geojson);
                   var latlng = layer.getLatLng();
                   query_dggs_for_point(latlng.lng, latlng.lat, function(data) {
                      console.log("in updateGeojson");
@@ -191,12 +218,58 @@
       geojson = c;
       callback(geojson);
       console.log(c);
+      disableSelectResolution();
+      showLoader();
+      start_query_time = performance.now();
+
+      query_dggs_geojson(geojson, function(data) {
+         console.log("in updateGeojson");
+         console.log(data);
+         if(data === 'undefined') {
+           console.log("data undefined!");
+         }
+         else if(Array.isArray(data)) {
+            data.forEach(dggsCellSet.add, dggsCellSet);
+         }
+         else {
+            dggsCellSet.add(data);
+         }
+         updateDggsResults();
+      })
+
       return c;
    }
 
+   function query_dggs_geojson(geojsonData, callback) {
+       var dggsResolution = $( "#dggsResolution" ).val();
+       var params = {
+         resolution: dggsResolution
+       };
+       var strGeojson = JSON.stringify(geojsonData, undefined, 4);
+       let query = Object.keys(params)
+             .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+             .join('&');
+       let url = "/api/search/find_dggs_by_geojson?" + query;
+       fetch(url, {
+           method: 'post',
+           headers: {
+              'Accept': 'application/json, text/plain, */*',
+              'Content-Type': 'application/json'
+           },
+           body: JSON.stringify(geojsonData, undefined, 4)
+       }).then(res=>res.json())
+         .then(function(data) {
+             var cellId_list =  [];
+             if ('dggs_cells' in data) {
+                cellId_list = data['dggs_cells'];
+             }
+             callback(cellId_list);
+          });
+   }
+   
+
    function query_dggs_for_point(x, y, callback) {
        var dggsResolution = $( "#dggsResolution" ).val();
-
        var params = {
          x: x,
          y: y,
@@ -206,8 +279,8 @@
        $.get( "/api/search/find_dggs_for_a_point", params )
           .done(function( data ) {
              var cellId = undefined
-             if ('cell_id' in data) {
-                cellId = data['cell_id'];
+             if ('dggs_cell_id' in data) {
+                cellId = data['dggs_cell_id'];
              }
              callback(cellId);
        });
@@ -308,6 +381,23 @@
         });
     });
 
+   function hideLoader() {
+      $('#loading').hide();
+   }
+   function showLoader() {
+      $('#loading').show();
+   }
+
+   function disableSelectResolution() {
+      $('#dggsResolution').attr('disabled', 'disabled');
+   }
+
+   function enableSelectResolution() {
+      $('#dggsResolution').removeAttr('disabled');
+   }
+
+
+
    $(document).ready(function() {
        $("#btnReset").click(function(){
              clearMapLayers(mymap, drawnItems, function() {}); 
@@ -317,6 +407,7 @@
           $("#dggscells-display").empty();
           updateAllResults();
        });
+       hideLoader();
    });
 </script>
 
