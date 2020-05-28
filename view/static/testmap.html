@@ -134,15 +134,19 @@
        }
        return false;
     }
+   function updateAllResults() {
+        updateGeojson(mymap, drawnItems, collection, function(geojson) { 
+                  var strGeojson = JSON.stringify(geojson, undefined, 4);
+                  console.log(strGeojson); 
+                  $("#geojson-display").text(strGeojson)
+        });
+   }
    function updateDggsResults() {
       $("#dggscells-display").empty();
       for (let item of dggsCellSet) {
          console.log(item);
          $("#dggscells-display").append("<a href='http://ec2-52-63-73-113.ap-southeast-2.compute.amazonaws.com/AusPIX-DGGS-dataset/ausPIX/" + item + "'>" + item + "</a><br/>");
       }
-
-      //var strDggsCells = JSON.stringify(Array.from(dggsCellSet), undefined, 4);
-      //console.log(strDggsCells); 
    }
 
    function updateGeojson(map, featureGroup, geojson, callback) {
@@ -308,6 +312,11 @@
        $("#btnReset").click(function(){
              clearMapLayers(mymap, drawnItems, function() {}); 
        }); 
+       $('select').on('change', function() {
+          dggsCellSet = new Set();
+          $("#dggscells-display").empty();
+          updateAllResults();
+       });
    });
 </script>
 
