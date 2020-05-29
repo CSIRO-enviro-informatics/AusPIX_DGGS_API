@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  dggsapi:
+    build: .
+  caddy:
+    image: abiosoft/caddy
+    ports:
+      - 443:2015
+    environment:
+      - ACME_AGREE=true
+    volumes:
+      - ./Caddyfile:/etc/Caddyfile
+      - ./certs:/etc/ssl
+    links:
+      - dggsapi
+    restart: always
