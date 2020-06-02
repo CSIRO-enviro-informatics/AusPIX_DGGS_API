@@ -75,7 +75,7 @@ textarea {
       <h2>GeoJSON</h3>
       <div>
          <button id="btnReset">Reset</button>
-         <button id="btnSend">Get DGGS Cells</button>
+         <button id="btnUpdateGeojson">Update</button>
       </div>
       <textarea id="geojson-display">
 {
@@ -120,10 +120,23 @@ textarea {
       "type": "FeatureCollection",
       "features": []
    };
+   var useGeojsonFlag = 0;
+   var currGeojsonText = '';
+   var geojsonTextChanged = 0;
 
    var dggsCellSet = new Set();
 
-   function clearMapLayers(map, featureGroup, callback) {
+   function clearDrawnMapLayers(map, featureGroup, callback) {
+      // Iterate the layers of the map
+      featureGroup.eachLayer(function (layer) {
+          featureGroup.removeLayer(layer);
+      });
+      dggsCellSet = new Set();
+      updateDggsResults();
+      callback();
+   }
+
+   function clearMapLayers(map, featureGroup, geojson_layer, callback) {
       var c = {
          "type": "FeatureCollection",
          "features": []
@@ -132,14 +145,32 @@ textarea {
       featureGroup.eachLayer(function (layer) {
           featureGroup.removeLayer(layer);
       });
+      geojson_layer.eachLayer(function (layer) {
+          geojson_layer.removeLayer(layer);
+      });
       var strGeojson = JSON.stringify(c, undefined, 4);
       console.log(strGeojson); 
-      $("#geojson-display").text(strGeojson)
+      currGeojsonText = strGeojson;
+      //$("#geojson-display").text(strGeojson);
+      $("#geojson-display").val(strGeojson);
       dggsCellSet = new Set();
       updateDggsResults();
       callback();
       console.log(c);
       return c;
+   }
+
+   function renderGeojsonTextinput(map, geojson_layer, geojson_inputtext) {
+      geojson_layer.eachLayer(function (layer) {
+          geojson_layer.removeLayer(layer);
+      });
+      console.log(geojson_inputtext);
+      currGeojsonText = geojson_inputtext;
+      var geojsonObj = JSON.parse(geojson_inputtext);
+      geojson_layer.addData(geojsonObj);
+      map.fitBounds(geojson_layer.getBounds());
+
+      time_and_query_dggs(geojsonObj);
    }
 
    function containsObject(obj, list) {
@@ -152,11 +183,17 @@ textarea {
        return false;
     }
    function updateAllResults() {
-        updateGeojson(mymap, drawnItems, collection, function(geojson) { 
+        if(useGeojsonFlag == 0) {
+           updateDrawnGeojson(mymap, drawnItems, collection, function(geojson) { 
                   var strGeojson = JSON.stringify(geojson, undefined, 4);
                   console.log(strGeojson); 
-                  $("#geojson-display").text(strGeojson)
-        });
+                  $("#geojson-display").val(strGeojson)
+           });
+        }
+        else {
+           var geojsonObj = JSON.parse(currGeojsonText); 
+           time_and_query_dggs(geojsonObj);
+        }
    }
    function updateDggsResults() {
       hideLoader();
@@ -175,7 +212,7 @@ textarea {
       
    }
 
-   function updateGeojson(map, featureGroup, geojson, callback) {
+   function updateDrawnGeojson(map, featureGroup, geojson, callback) {
       var c = {
          "type": "FeatureCollection",
          "features": []
@@ -193,7 +230,7 @@ textarea {
                   //c.features.push(geojson);
                   var latlng = layer.getLatLng();
                   query_dggs_for_point(latlng.lng, latlng.lat, function(data) {
-                     console.log("in updateGeojson");
+                     console.log("in updateDrawnGeojson");
                      console.log(data);
                      dggsCellSet.add(data);
                      updateDggsResults();
@@ -218,12 +255,14 @@ textarea {
       geojson = c;
       callback(geojson);
       console.log(c);
+      time_and_query_dggs(geojson);
+      /*
       disableSelectResolution();
       showLoader();
       start_query_time = performance.now();
 
       query_dggs_geojson(geojson, function(data) {
-         console.log("in updateGeojson");
+         console.log("in updateDrawnGeojson");
          console.log(data);
          if(data === 'undefined') {
            console.log("data undefined!");
@@ -236,8 +275,30 @@ textarea {
          }
          updateDggsResults();
       })
+      */
 
       return c;
+   }
+
+   function time_and_query_dggs(geojson) {
+      disableSelectResolution();
+      showLoader();
+      start_query_time = performance.now();
+
+      query_dggs_geojson(geojson, function(data) {
+         console.log("in updateDrawnGeojson");
+         console.log(data);
+         if(data === 'undefined') {
+           console.log("data undefined!");
+         }
+         else if(Array.isArray(data)) {
+            data.forEach(dggsCellSet.add, dggsCellSet);
+         }
+         else {
+            dggsCellSet.add(data);
+         }
+         updateDggsResults();
+      })
    }
 
    function query_dggs_geojson(geojsonData, callback) {
@@ -312,6 +373,7 @@ textarea {
             osm = L.tileLayer(osmUrl, { maxZoom: 18, attribution: osmAttrib }),
             mymap,
             drawnItems = L.featureGroup().addTo(mymap);
+            geojsonLayer = L.geoJSON().addTo(mymap);
    L.control.layers({
         'osm': osm.addTo(mymap),
         "google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
@@ -319,7 +381,8 @@ textarea {
         })
      }, 
      { 
-        drawlayer: drawnItems 
+        drawlayer: drawnItems,
+        geojson: geojsonLayer
      }, 
      { 
          position: 'topleft', 
@@ -369,15 +432,20 @@ textarea {
     }));
 
     mymap.on(L.Draw.Event.CREATED, function (event) {
+        if(useGeojsonFlag == 1) {
+           //clear leaflet map of geojson stuff
+           clearMapLayers(mymap, drawnItems, geojsonLayer, function() {}); 
+           useGeojsonFlag = 0;
+        }
         var layer = event.layer;
 
         drawnItems.addLayer(layer);
         console.log("something created");
 
-        updateGeojson(mymap, drawnItems, collection, function(geojson) { 
+        updateDrawnGeojson(mymap, drawnItems, collection, function(geojson) { 
                   var strGeojson = JSON.stringify(geojson, undefined, 4);
                   console.log(strGeojson); 
-                  $("#geojson-display").text(strGeojson)
+                  $("#geojson-display").val(strGeojson)
         });
     });
 
@@ -400,7 +468,31 @@ textarea {
 
    $(document).ready(function() {
        $("#btnReset").click(function(){
-             clearMapLayers(mymap, drawnItems, function() {}); 
+             useGeojsonFlag = 0;
+             clearMapLayers(mymap, drawnItems, geojsonLayer, function() {}); 
+             geojsonTextChanged = 0;
+       }); 
+       $("#geojson-display").on('input',function(e){
+          var input = $(this);
+          var val = input.val();
+          console.log(val);
+          if(val != currGeojsonText) {
+             console.log('Geojson Input Changed!')
+             geojsonTextChanged = 1;
+          }
+       });
+       $("#btnUpdateGeojson").click(function(){
+             if(useGeojsonFlag == 0 && geojsonTextChanged == 0) {
+                clearMapLayers(mymap, geojsonLayer, function() {}); 
+             }
+             if(geojsonTextChanged == 1) {
+                 clearDrawnMapLayers(mymap, drawnItems, function() {}); 
+                 var geojsonText = $("#geojson-display").val();
+                 renderGeojsonTextinput(mymap, geojsonLayer, geojsonText, function() {
+                 }); 
+                 geojsonTextChanged = 0;
+                 useGeojsonFlag = 1; //put geojson flag up
+             }
        }); 
        $('select').on('change', function() {
           dggsCellSet = new Set();
