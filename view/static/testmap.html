@@ -181,11 +181,17 @@ textarea {
        return false;
     }
    function updateAllResults() {
-        updateDrawnGeojson(mymap, drawnItems, collection, function(geojson) { 
+        if(useGeojsonFlag == 0) {
+           updateDrawnGeojson(mymap, drawnItems, collection, function(geojson) { 
                   var strGeojson = JSON.stringify(geojson, undefined, 4);
                   console.log(strGeojson); 
                   $("#geojson-display").val(strGeojson)
-        });
+           });
+        }
+        else {
+           var geojsonObj = JSON.parse(currGeojsonText); 
+           time_and_query_dggs(geojsonObj);
+        }
    }
    function updateDggsResults() {
       hideLoader();
