@@ -168,6 +168,8 @@ textarea {
       currGeojsonText = geojson_inputtext;
       var geojsonObj = JSON.parse(geojson_inputtext);
       geojson_layer.addData(geojsonObj);
+      map.fitBounds(geojson_layer.getBounds());
+
       time_and_query_dggs(geojsonObj);
    }
 
