@@ -6,6 +6,7 @@ flask-cors
 flask-restx
 Werkzeug
 pyproj
+pygeoj
 shapely
 geojson
-git+https://github.com/jevy-wangfei/AusPIX_DGGS.git#egg=AusPIX_DGGS
+git+https://github.com/CSIRO-enviro-informatics/AusPIX_DGGS.git@geojson#egg=AusPIX_DGGS
