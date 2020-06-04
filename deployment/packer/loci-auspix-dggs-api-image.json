@@ -1,0 +1,48 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "ap-southeast-2",
+    "source_ami": "ami-03ed5bd63ba378bd8",
+    "instance_type": "t2.micro",
+    "force_deregister" : true,
+    "force_delete_snapshot" : true,
+    "tags": { "purpose": "auspix-dggs-api-image {{timestamp}}" } ,
+    "run_volume_tags": { "purpose": "run auspix-dggs-api-image {{timestamp}}" } ,
+    "ssh_username": "ec2-user",
+    "ami_name": "auspix-dggs-api-image {{timestamp}}",
+    "launch_block_device_mappings": [{
+      "device_name": "/dev/xvda",
+      "delete_on_termination": true,
+      "volume_size": 50,
+      "volume_type": "gp2"
+    }]
+  }],
+  "provisioners": [
+      {
+        "type": "file",
+        "source": "instance.sh",
+        "destination": "/tmp/instance.sh"
+      },
+      {
+         "type": "file",
+         "source": "../../../certs/wildcard-loci-cat.pem",
+         "destination": "/tmp/wildcard-loci-cat.pem"
+      },
+      {
+         "type": "file",
+         "source": "../../../certs/wildcard-loci-cat.bundle.pem",
+         "destination": "/tmp/wildcard-loci-cat.bundle.pem"
+      },
+      {
+        "type": "shell",
+        "script": "./prov.sh", 
+        "execute_command": "echo 'packer' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'" 
+      }
+  ]
+}

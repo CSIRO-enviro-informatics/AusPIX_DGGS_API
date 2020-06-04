@@ -18,7 +18,7 @@ rdggs = RHEALPixDGGS()
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
 resolutionParser = reqparse.RequestParser()
 resolutionParser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], help='DGGS Resolution 1 to 14')
-resolutionParser.add_argument('dggs_as_polygon', type=bool, choices=[True, False], default=False, help='Return geojson with DGGS cells as polygon features when set True (default False), return original geojson object when set False')
+resolutionParser.add_argument('dggs_as_polygon', type=str, choices=['False', 'True'], default="False", help='Return geojson with DGGS cells as polygon features when set True (default False), return original geojson object when set False')
 resolutionParser.add_argument('geojson', type=dict, location='json')
 
 def bbox(coord_list):
@@ -64,6 +64,7 @@ def get_cells_in_geojson(geojson, resolution, return_cell_obj=False):
 class FindDGGSByGeojson(Resource):
     def post(self):
         args = resolutionParser.parse_args()
+        print(args)
         geojson_obj = geojson.loads(json.dumps(request.json))
         if not hasattr(geojson_obj, 'is_valid'):
             return {
@@ -74,8 +75,8 @@ class FindDGGSByGeojson(Resource):
                 "error": "geojson is invalid.",
                 "detail": geojson_obj.errors()
             }
-        print(args.dggs_as_polygon, args.dggs_as_polygon==True)
-        if args.dggs_as_polygon == False:
+        print(args.dggs_as_polygon, args.dggs_as_polygon=='True')
+        if args.dggs_as_polygon == 'False':
             cells = get_cells_in_geojson(geojson_obj, args.resolution, False)
             meta = {
                 "cells_count": len(cells)
