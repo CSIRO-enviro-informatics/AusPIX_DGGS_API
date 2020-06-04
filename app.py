@@ -15,6 +15,15 @@ api.add_namespace(search_api)
 app.register_blueprint(blueprint)
 
 
+@app.route('/')
+def root():
+    return app.send_static_file('index.html')
+
+@app.route('/testmap/')
+def testmap():
+    return app.send_static_file('testmap.html')
+
+
 # run the Flask app
 if __name__ == '__main__':
     logging.basicConfig(filename=conf.LOGFILE,

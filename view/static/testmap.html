@@ -1,0 +1,510 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	
+	<title>AUSPIX DGGS API Test Map</title>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha256-siofc4Uwjlra3YWkwthOn8Uj69cNN4aMug/iOHNiRgs=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" integrity="sha256-XzD3RpaHPv7lzX9qt+2n1j5cWj48O24KsgaGYpKN8x8=" crossorigin="anonymous" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+	
+<style>
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}
+.page-wrapper {
+  margin: 15px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}
+
+.notloading {
+}
+.loading {
+   min-width: 32px;
+	min-height: 32px;
+	background-repeat: no-repeat;
+   background-image: url(data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==);
+}
+textarea {
+    resize: none;
+    width: 90%;
+    height: 80vh;
+}
+
+</style>
+
+</head>
+<body>
+<div class='page-wrapper'>
+  <div class='row'>
+    <div class='column'>
+        <div id="mapid" style="width: 1000px; height: 800px;"></div>
+    </div>
+    <div class='column'>
+      <h2>GeoJSON</h3>
+      <div>
+         <button id="btnReset">Reset</button>
+         <button id="btnUpdateGeojson">Update</button>
+      </div>
+      <textarea id="geojson-display">
+{
+  "type": "FeatureCollection",
+  "features": []
+}
+      </textarea>
+    </div>
+    <div class='column'>
+      <h2>DGGS Output</h3>
+      <div>
+         <label for="dggsResolution">Choose a resolution:</label>
+         <select name="dggsResolution" id="dggsResolution">
+           <option value="1">1</option>
+           <option value="2">2</option>
+           <option value="3">3</option>
+           <option value="4">4</option>
+           <option value="5" selected>5</option>
+           <option value="6">6</option>
+           <option value="7">7</option>
+           <option value="8">8</option>
+           <option value="9">9</option>
+           <option value="10">10</option>
+           <option value="11">11</option>
+           <option value="12">12</option>
+         </select>
+      </div>
+      <div id="loading" class="loading"><p>Loading</p></div>
+      <pre id="dggscells-display">
+      </pre>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+
+
+<script>
+   var start_query_time = 0;
+   var end_query_time = 0;
+   var collection = {
+      "type": "FeatureCollection",
+      "features": []
+   };
+   var useGeojsonFlag = 0;
+   var currGeojsonText = '';
+   var geojsonTextChanged = 0;
+
+   var dggsCellSet = new Set();
+
+   function clearDrawnMapLayers(map, featureGroup, callback) {
+      // Iterate the layers of the map
+      featureGroup.eachLayer(function (layer) {
+          featureGroup.removeLayer(layer);
+      });
+      dggsCellSet = new Set();
+      updateDggsResults();
+      callback();
+   }
+
+   function clearMapLayers(map, featureGroup, geojson_layer, callback) {
+      var c = {
+         "type": "FeatureCollection",
+         "features": []
+      };
+      // Iterate the layers of the map
+      featureGroup.eachLayer(function (layer) {
+          featureGroup.removeLayer(layer);
+      });
+      geojson_layer.eachLayer(function (layer) {
+          geojson_layer.removeLayer(layer);
+      });
+      var strGeojson = JSON.stringify(c, undefined, 4);
+      console.log(strGeojson); 
+      currGeojsonText = strGeojson;
+      //$("#geojson-display").text(strGeojson);
+      $("#geojson-display").val(strGeojson);
+      dggsCellSet = new Set();
+      updateDggsResults();
+      callback();
+      console.log(c);
+      return c;
+   }
+
+   function renderGeojsonTextinput(map, geojson_layer, geojson_inputtext) {
+      geojson_layer.eachLayer(function (layer) {
+          geojson_layer.removeLayer(layer);
+      });
+      console.log(geojson_inputtext);
+      currGeojsonText = geojson_inputtext;
+      var geojsonObj = JSON.parse(geojson_inputtext);
+      geojson_layer.addData(geojsonObj);
+      map.fitBounds(geojson_layer.getBounds());
+
+      time_and_query_dggs(geojsonObj);
+   }
+
+   function containsObject(obj, list) {
+       var x;
+       for (x in list) {
+           if (JSON.stringify(x) === JSON.stringify(obj)) {
+               return true;
+           }
+       }
+       return false;
+    }
+   function updateAllResults() {
+        if(useGeojsonFlag == 0) {
+           updateDrawnGeojson(mymap, drawnItems, collection, function(geojson) { 
+                  var strGeojson = JSON.stringify(geojson, undefined, 4);
+                  console.log(strGeojson); 
+                  $("#geojson-display").val(strGeojson)
+           });
+        }
+        else {
+           var geojsonObj = JSON.parse(currGeojsonText); 
+           time_and_query_dggs(geojsonObj);
+        }
+   }
+   function updateDggsResults() {
+      hideLoader();
+      enableSelectResolution();
+      end_query_time = performance.now();
+      elapsedTime = end_query_time - start_query_time;
+      elapsedSeconds = parseFloat( (elapsedTime / 1000).toFixed(4));
+
+      $("#dggscells-display").empty();
+      $("#dggscells-display").append("Number of cells: " + dggsCellSet.size + "<br/>");
+      $("#dggscells-display").append("Execution time (seconds): " + elapsedSeconds + "<br/>");
+      for (let item of dggsCellSet) {
+         console.log(item);
+         $("#dggscells-display").append("<a href='http://ec2-52-63-73-113.ap-southeast-2.compute.amazonaws.com/AusPIX-DGGS-dataset/ausPIX/" + item + "'>" + item + "</a><br/>");
+      }
+      
+   }
+
+   function updateDrawnGeojson(map, featureGroup, geojson, callback) {
+      var c = {
+         "type": "FeatureCollection",
+         "features": []
+      };
+      // Iterate the layers of the map
+      
+      featureGroup.eachLayer(function (layer) {
+          // Check if layer is a marker
+          if (layer instanceof L.Marker) {
+              // Create GeoJSON object from marker
+              var geojson = layer.toGeoJSON();
+              // Push GeoJSON object to collection
+              if(! containsObject(geojson, c.features)) {
+                  //comment this out as API doesn't handle points yet
+                  //c.features.push(geojson);
+                  var latlng = layer.getLatLng();
+                  query_dggs_for_point(latlng.lng, latlng.lat, function(data) {
+                     console.log("in updateDrawnGeojson");
+                     console.log(data);
+                     dggsCellSet.add(data);
+                     updateDggsResults();
+                  })
+              }
+          }
+          else if (layer instanceof L.Polyline) {
+              // Create GeoJSON object from marker
+              var geojson = layer.toGeoJSON();
+              // Push GeoJSON object to collection
+              if(! containsObject(geojson, c.features)) {
+                  c.features.push(geojson);
+              }
+          }
+          else if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+              var geojson = layer.toGeoJSON();
+              if(! containsObject(geojson, c.features)) {
+                  c.features.push(geojson);
+              }
+          }
+      });
+      geojson = c;
+      callback(geojson);
+      console.log(c);
+      time_and_query_dggs(geojson);
+      /*
+      disableSelectResolution();
+      showLoader();
+      start_query_time = performance.now();
+
+      query_dggs_geojson(geojson, function(data) {
+         console.log("in updateDrawnGeojson");
+         console.log(data);
+         if(data === 'undefined') {
+           console.log("data undefined!");
+         }
+         else if(Array.isArray(data)) {
+            data.forEach(dggsCellSet.add, dggsCellSet);
+         }
+         else {
+            dggsCellSet.add(data);
+         }
+         updateDggsResults();
+      })
+      */
+
+      return c;
+   }
+
+   function time_and_query_dggs(geojson) {
+      disableSelectResolution();
+      showLoader();
+      start_query_time = performance.now();
+
+      query_dggs_geojson(geojson, function(data) {
+         console.log("in updateDrawnGeojson");
+         console.log(data);
+         if(data === 'undefined') {
+           console.log("data undefined!");
+         }
+         else if(Array.isArray(data)) {
+            data.forEach(dggsCellSet.add, dggsCellSet);
+         }
+         else {
+            dggsCellSet.add(data);
+         }
+         updateDggsResults();
+      })
+   }
+
+   function query_dggs_geojson(geojsonData, callback) {
+       var dggsResolution = $( "#dggsResolution" ).val();
+       var params = {
+         resolution: dggsResolution
+       };
+       var strGeojson = JSON.stringify(geojsonData, undefined, 4);
+       let query = Object.keys(params)
+             .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+             .join('&');
+       let url = "/api/search/find_dggs_by_geojson?" + query;
+       fetch(url, {
+           method: 'post',
+           headers: {
+              'Accept': 'application/json, text/plain, */*',
+              'Content-Type': 'application/json'
+           },
+           body: JSON.stringify(geojsonData, undefined, 4)
+       }).then(res=>res.json())
+         .then(function(data) {
+             var cellId_list =  [];
+             if ('dggs_cells' in data) {
+                cellId_list = data['dggs_cells'];
+             }
+             callback(cellId_list);
+          });
+   }
+   
+
+   function query_dggs_for_point(x, y, callback) {
+       var dggsResolution = $( "#dggsResolution" ).val();
+       var params = {
+         x: x,
+         y: y,
+         resolution: dggsResolution,
+         epsg: 4326
+       };
+       $.get( "/api/search/find_dggs_for_a_point", params )
+          .done(function( data ) {
+             var cellId = undefined
+             if ('dggs_cell_id' in data) {
+                cellId = data['dggs_cell_id'];
+             }
+             callback(cellId);
+       });
+   }
+   
+
+	var mymap = L.map('mapid').setView([ -35.5523399441562, 148.85101318359375 ], 9);
+
+	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+			'<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+		id: 'mapbox/streets-v11',
+		tileSize: 512,
+		zoomOffset: -1
+	}).addTo(mymap);
+
+	var popup = L.popup();
+
+	function onMapClick(e) {
+      console.log("Map clicked");
+      console.log(e)
+	}
+
+
+   var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            osm = L.tileLayer(osmUrl, { maxZoom: 18, attribution: osmAttrib }),
+            mymap,
+            drawnItems = L.featureGroup().addTo(mymap);
+            geojsonLayer = L.geoJSON().addTo(mymap);
+   L.control.layers({
+        'osm': osm.addTo(mymap),
+        "google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+            attribution: 'google'
+        })
+     }, 
+     { 
+        drawlayer: drawnItems,
+        geojson: geojsonLayer
+     }, 
+     { 
+         position: 'topleft', 
+         collapsed: false 
+     }).addTo(mymap);
+
+   L.DrawToolbar.include({
+      getModeHandlers: function(map) {
+        return [
+          {
+            enabled: this.options.polyline,
+            handler: new L.Draw.Polyline(map, this.options.polyline),
+            title: L.drawLocal.draw.toolbar.buttons.polyline
+          },
+          {
+            enabled: this.options.polygon,
+            handler: new L.Draw.Polygon(map, this.options.polygon),
+            title: L.drawLocal.draw.toolbar.buttons.polygon
+          },
+          {
+            enabled: this.options.rectangle,
+            handler: new L.Draw.Rectangle(map, this.options.rectangle),
+            title: L.drawLocal.draw.toolbar.buttons.rectangle
+          },
+          {
+            enabled: this.options.marker,
+            handler: new L.Draw.Marker(map, this.options.marker),
+            title: L.drawLocal.draw.toolbar.buttons.marker
+          }
+        ];
+      }
+    });
+
+   mymap.addControl(new L.Control.Draw({
+        edit: {
+            featureGroup: drawnItems,
+            poly: {
+                allowIntersection: false
+            }
+        },
+        draw: {
+            polygon: {
+                allowIntersection: false,
+                showArea: true
+            }
+        }
+    }));
+
+    mymap.on(L.Draw.Event.CREATED, function (event) {
+        if(useGeojsonFlag == 1) {
+           //clear leaflet map of geojson stuff
+           clearMapLayers(mymap, drawnItems, geojsonLayer, function() {}); 
+           useGeojsonFlag = 0;
+        }
+        var layer = event.layer;
+
+        drawnItems.addLayer(layer);
+        console.log("something created");
+
+        updateDrawnGeojson(mymap, drawnItems, collection, function(geojson) { 
+                  var strGeojson = JSON.stringify(geojson, undefined, 4);
+                  console.log(strGeojson); 
+                  $("#geojson-display").val(strGeojson)
+        });
+    });
+
+   function hideLoader() {
+      $('#loading').hide();
+   }
+   function showLoader() {
+      $('#loading').show();
+   }
+
+   function disableSelectResolution() {
+      $('#dggsResolution').attr('disabled', 'disabled');
+   }
+
+   function enableSelectResolution() {
+      $('#dggsResolution').removeAttr('disabled');
+   }
+
+
+
+   $(document).ready(function() {
+       $("#btnReset").click(function(){
+             useGeojsonFlag = 0;
+             clearMapLayers(mymap, drawnItems, geojsonLayer, function() {}); 
+             geojsonTextChanged = 0;
+       }); 
+       $("#geojson-display").on('input',function(e){
+          var input = $(this);
+          var val = input.val();
+          console.log(val);
+          if(val != currGeojsonText) {
+             console.log('Geojson Input Changed!')
+             geojsonTextChanged = 1;
+          }
+       });
+       $("#btnUpdateGeojson").click(function(){
+             if(useGeojsonFlag == 0 && geojsonTextChanged == 0) {
+                clearMapLayers(mymap, geojsonLayer, function() {}); 
+             }
+             if(geojsonTextChanged == 1) {
+                 clearDrawnMapLayers(mymap, drawnItems, function() {}); 
+                 var geojsonText = $("#geojson-display").val();
+                 renderGeojsonTextinput(mymap, geojsonLayer, geojsonText, function() {
+                 }); 
+                 geojsonTextChanged = 0;
+                 useGeojsonFlag = 1; //put geojson flag up
+             }
+       }); 
+       $('select').on('change', function() {
+          dggsCellSet = new Set();
+          $("#dggscells-display").empty();
+          updateAllResults();
+       });
+       hideLoader();
+   });
+</script>
+
+
+
+</body>
+</html>
+
