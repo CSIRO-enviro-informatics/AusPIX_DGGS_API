@@ -1,7 +1,12 @@
 import json
 from app import app
 import unittest
+import os
+from .data.RoadsExample_geoJason_dggs_result import RoadsExampleResult
+from .data.RoadsExample_geoJason_dggs_polygon_result import RoadsExamplePolygonResult
 
+current_dir = os.path.dirname(__file__)
+print("current_dir", current_dir)
 # use python -m pytest to run this test case
 
 class TestSequenceFunctions(unittest.TestCase):
@@ -18,7 +23,7 @@ class TestSequenceFunctions(unittest.TestCase):
         assert json.loads(res.data)['dggs_cell_id'] == 'R7852372'
 
     # Test Polygon
-    def test_find_dggs_cells_by_geojson(self):
+    def test_find_dggs_cells_by_polygon_geojson(self):
         geo_json = {
             "type": "FeatureCollection",
             "name": "Belconnen",
@@ -55,7 +60,7 @@ class TestSequenceFunctions(unittest.TestCase):
                 }
             ]
         }
-        res = self.client.post('api/search/find_dggs_by_geojson?resolution=10', json=geo_json)
+        res = self.client.post('api/search/find_dggs_by_geojson?resolution=10&dggs_as_polygon=False', json=geo_json)
         result = [
             "R7852344443",
             "R7852344444",
@@ -66,10 +71,11 @@ class TestSequenceFunctions(unittest.TestCase):
         ]
         self.assertListEqual(json.loads(res.data)['dggs_cells'], result)
     # Test multi polygon
-    def get_find_dggs_cells_by_geojson_multi_plygon(self):
-        with open("ACT_SA1_Black_Mountain.geojson", "r") as file:
-            geo_json = json.loads(file.read)
-            res = self.client.post('api/search/find_dggs_by_geojson?resolution=8', json=geo_json)
+    def test_get_find_dggs_cells_by_multi_polygon_geojson(self):
+        print(os.path.dirname(__file__))
+        with open(os.path.join(current_dir, "data/ACT_SA1_Black_Mountain.geojson"), "r") as file:
+            geo_json = json.loads(file.read())
+            res = self.client.post('api/search/find_dggs_by_geojson?resolution=8&dggs_as_polygon=False', json=geo_json)
             result = [
                 "R78523472",
                 "R78523480",
@@ -78,6 +84,19 @@ class TestSequenceFunctions(unittest.TestCase):
                 "R78523477"
             ]
             self.assertListEqual(json.loads(res.data)['dggs_cells'], result)
+    # Test dggs cells for given geojson lines
+    def test_get_find_dggs_cells_by_lines_geojson(self):
+        with open(os.path.join(current_dir, "data/RoadsExample_geoJason.geojson"), "r") as file:
+            geo_json = json.loads(file.read())
+            res = self.client.post('api/search/find_dggs_by_geojson?resolution=8&dggs_as_polygon=False', json=geo_json)
+            self.assertEqual(json.loads(res.data)['meta']['cells_count'], 41)
+            self.assertListEqual(json.loads(res.data)['dggs_cells'], RoadsExampleResult)
+    # Test dggs cells as polygon features
+    def test_get_find_dggs_cells_by_lines_geojson(self):
+        with open(os.path.join(current_dir, "data/RoadsExample_geoJason.geojson"), "r") as file:
+            geo_json = json.loads(file.read())
+            res = self.client.post('api/search/find_dggs_by_geojson?resolution=8&dggs_as_polygon=True', json=geo_json)
+            self.assertListEqual(json.loads(res.data)['features'], RoadsExamplePolygonResult)
 if __name__ == '__main__':
     unittest.main()
 
