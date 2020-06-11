@@ -15,10 +15,11 @@ import json
 import geojson
 
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
-resolutionParser = reqparse.RequestParser()
-resolutionParser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], help='DGGS Resolution 1 to 14')
-resolutionParser.add_argument('dggs_as_polygon', type=str, choices=['False', 'True'], default="False", help='Return geojson with DGGS cells as polygon features when set True (default False), return original geojson object when set False')
-resolutionParser.add_argument('geojson', type=dict, location='json')
+find_dggs_by_geojson_parser = reqparse.RequestParser()
+find_dggs_by_geojson_parser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], help='DGGS Resolution 1 to 14')
+find_dggs_by_geojson_parser.add_argument('dggs_as_polygon', type=str, choices=['False', 'True'], default="True", help='Return geojson with DGGS cells as polygon features when set True (default True), return original geojson object when set False')
+find_dggs_by_geojson_parser.add_argument('keep_properties', type=str, choices=['False', 'True'], default="True", help='Keep the geojson features\' properties at the returned geojson when set True (default True)')
+find_dggs_by_geojson_parser.add_argument('geojson', type=dict, location='json')
 
 def bbox(coord_list):
      box = []
@@ -54,6 +55,14 @@ def get_cells_in_geojson(geojson, resolution, return_cell_obj=False):
         res_cells = get_cells_in_feature(fea, resolution, return_cell_obj)
         list_cells = list(list_cells + res_cells)
     return list_cells
+def get_cells_with_property_in_geojson(geojson, resolution, return_cell_obj=False):
+    list_cells = []
+    list_property = []
+    for fea in geojson['features']:  # for feature in attribute table
+        res_cells = get_cells_in_feature(fea, resolution, return_cell_obj)
+        list_cells.append(res_cells)
+        list_property.append(fea['properties'])
+    return list_cells, list_property
 
 def reduce_duplicate_cells(cells):
     # return original cells (str or object)
@@ -66,11 +75,16 @@ def reduce_duplicate_cells(cells):
             unique_cells.append(cell)
     return unique_cells
 @api.route('/find_dggs_by_geojson')
-@api.doc(parser=resolutionParser)
+@api.doc(parser=find_dggs_by_geojson_parser)
 class FindDGGSByGeojson(Resource):
     def post(self):
-        args = resolutionParser.parse_args()
-        print(args)
+        args = find_dggs_by_geojson_parser.parse_args()
+        dggs_as_polygon = "True"
+        keep_properties = "True"
+        if args['keep_properties']:
+            keep_properties = args.keep_properties
+        if args['dggs_as_polygon']:
+            dggs_as_polygon = args.dggs_as_polygon
         geojson_obj = geojson.loads(json.dumps(request.json))
         if not hasattr(geojson_obj, 'is_valid'):
             return {
@@ -81,7 +95,6 @@ class FindDGGSByGeojson(Resource):
                 "error": "geojson is invalid.",
                 "detail": geojson_obj.errors()
             }
-        print(args.dggs_as_polygon, args.dggs_as_polygon=='True')
         if args.dggs_as_polygon == 'False':
             cells = get_cells_in_geojson(geojson_obj, args.resolution, False)
             cells = reduce_duplicate_cells(cells)
@@ -94,14 +107,23 @@ class FindDGGSByGeojson(Resource):
                 # "payload": geojson_obj
             }
         else:
-            cells = get_cells_in_geojson(geojson_obj, args.resolution, True)
-            cells = reduce_duplicate_cells(cells)
+            list_cells, list_properties = get_cells_with_property_in_geojson(geojson_obj, args.resolution, True)
             list_features = []
-            for cell in cells:
-                bbox_coords = get_dggs_cell_bbox(cell)
-                geom_obj = Polygon(bbox_coords)
-                feat = Feature(geometry=geom_obj, properties={"dggs_cell_id": str(cell)}) 
-                list_features.append(feat)
+            for i, cells in enumerate(list_cells):
+                features = []
+                cells = reduce_duplicate_cells(cells)
+                for cell in cells:
+                    bbox_coords = get_dggs_cell_bbox(cell)
+                    geom_obj = Polygon(bbox_coords)
+                    if keep_properties == 'True':
+                        properties = list_properties[i]
+                        properties['dggs_cell_id'] = str(cell)
+                    else:
+                        properties = {}
+                        properties['dggs_cell_id'] = str(cell)
+                    feat = Feature(geometry=geom_obj, properties=properties) 
+                    features.append(feat)
+                list_features.append(features)
 
             feature_collection = FeatureCollection(list_features)
             return feature_collection
