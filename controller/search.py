@@ -16,7 +16,7 @@ import geojson
 
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
 find_dggs_by_geojson_parser = reqparse.RequestParser()
-find_dggs_by_geojson_parser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], help='DGGS Resolution 1 to 14')
+find_dggs_by_geojson_parser.add_argument('resolution', type=int, required=True, choices=[4,5,6,7,8,9,10,11,12], help='DGGS Resolution 4 to 12')
 find_dggs_by_geojson_parser.add_argument('dggs_as_polygon', type=str, choices=['False', 'True'], default="True", help='Return geojson with DGGS cells as polygon features when set True (default True), return original geojson object when set False')
 find_dggs_by_geojson_parser.add_argument('keep_properties', type=str, choices=['False', 'True'], default="True", help='Keep the geojson features\' properties at the returned geojson when set True (default True)')
 find_dggs_by_geojson_parser.add_argument('geojson', type=dict, location='json')
@@ -110,7 +110,6 @@ class FindDGGSByGeojson(Resource):
             list_cells, list_properties = get_cells_with_property_in_geojson(geojson_obj, args.resolution, True)
             list_features = []
             for i, cells in enumerate(list_cells):
-                features = []
                 cells = reduce_duplicate_cells(cells)
                 for cell in cells:
                     bbox_coords = get_dggs_cell_bbox(cell)
@@ -122,11 +121,11 @@ class FindDGGSByGeojson(Resource):
                         properties = {}
                         properties['dggs_cell_id'] = str(cell)
                     feat = Feature(geometry=geom_obj, properties=properties) 
-                    features.append(feat)
-                list_features.append(features)
+                    list_features.append(feat)
 
             feature_collection = FeatureCollection(list_features)
-            return feature_collection
+            geojson_obj['features'] = feature_collection['features']
+            return geojson_obj
      
 pointerParser = reqparse.RequestParser()
 pointerParser.add_argument('x', type=float, required=True, help='Coordinate X')
