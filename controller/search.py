@@ -1,7 +1,7 @@
 
 from flask import Flask, Blueprint, request
 from flask_restx import Namespace, Resource, reqparse, fields
-from shapely.geometry import shape, LineString, MultiLineString, Polygon, MultiPolygon
+from shapely.geometry import shape, LineString, MultiLineString, Polygon, MultiPolygon,  Point, MultiPoint
 from geojson.utils import coords
 from geojson import Feature, FeatureCollection
 from shapely.geometry import Polygon, shape
@@ -35,8 +35,13 @@ def geojson_to_shape(g):
 def get_cells_in_feature(fea, resolution, return_cell_obj=False):
     geom = geojson_to_shape(fea['geometry'])
     curr_coords = list(coords(fea))
+    print(curr_coords,  isinstance(geom, Point) , isinstance(geom, MultiPoint))
     thisbbox = bbox(curr_coords)
     cells = []
+    if isinstance(geom, Point) or isinstance(geom, MultiPoint): 
+        # return cell object for Point or multiPoint
+        for coord in curr_coords:
+            cells.append(latlong_to_DGGS(coord, resolution))
     if isinstance(geom, LineString) or isinstance(geom, MultiLineString): 
         # return cell object for line
         cells = line_to_DGGS(curr_coords, resolution)
@@ -44,9 +49,7 @@ def get_cells_in_feature(fea, resolution, return_cell_obj=False):
         # return cell string
         res_cells = cells_in_poly(thisbbox, curr_coords, resolution, return_cell_obj)  
         cells = [item[0] for item in res_cells]
-    else: 
-        cells = cells_in_poly(thisbbox, curr_coords, resolution, return_cell_obj) 
-        cells = [item[0] for item in res_cells]
+
     return cells
 
 def get_cells_in_geojson(geojson, resolution, return_cell_obj=False):
