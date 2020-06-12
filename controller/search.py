@@ -7,7 +7,7 @@ from geojson import Feature, FeatureCollection
 from shapely.geometry import Polygon, shape
 from auspixdggs.callablemodules.dggs_in_poly_for_geojson_callable import cells_in_poly, get_dggs_cell_bbox
 from auspixdggs.callablemodules.dggs_for_points_geojson_callable import latlong_to_DGGS
-from auspixdggs.callablemodules.dggs_in_line import line_to_DGGS
+from auspixdggs.callablemodules.dggs_in_line import line_to_DGGS, densify_my_line
 from auspixdggs.auspixengine.dggs import RHEALPixDGGS
 from auspixdggs.callablemodules.util import transform_coordinates
 from auspixdggs.callablemodules.util import rdggs
@@ -35,7 +35,6 @@ def geojson_to_shape(g):
 def get_cells_in_feature(fea, resolution, return_cell_obj=False):
     geom = geojson_to_shape(fea['geometry'])
     curr_coords = list(coords(fea))
-    print(curr_coords,  isinstance(geom, Point) , isinstance(geom, MultiPoint))
     thisbbox = bbox(curr_coords)
     cells = []
     if isinstance(geom, Point) or isinstance(geom, MultiPoint): 
@@ -44,6 +43,7 @@ def get_cells_in_feature(fea, resolution, return_cell_obj=False):
             cells.append(latlong_to_DGGS(coord, resolution))
     if isinstance(geom, LineString) or isinstance(geom, MultiLineString): 
         # return cell object for line
+        fea['geometry']['coordinates'] = densify_my_line(fea['geometry']['coordinates'], resolution)
         cells = line_to_DGGS(curr_coords, resolution)
     elif isinstance(geom, Polygon) or  isinstance(geom, MultiPolygon):
         # return cell string
@@ -70,7 +70,6 @@ def get_cells_with_property_in_geojson(geojson, resolution, return_cell_obj=Fals
 def reduce_duplicate_cells_2d_array(cells):
     # input 2-d array of cells
     # return original cells (str or object)
-    print(cells)
     unique_cells = []
     unique_cells_str = []
     for cell_array in cells:
@@ -129,7 +128,6 @@ class FindDGGSByGeojson(Resource):
         else:
             list_cells, list_properties = get_cells_with_property_in_geojson(geojson_obj, args.resolution, True)
             list_cells, list_properties = reduce_duplicate_cells_properties(list_cells, list_properties)
-            print(len(list_cells), len(list_properties))
             list_features = []
             for i, cell in enumerate(list_cells):
                 bbox_coords = get_dggs_cell_bbox(cell)
