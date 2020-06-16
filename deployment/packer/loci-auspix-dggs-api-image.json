@@ -8,7 +8,15 @@
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "ap-southeast-2",
-    "source_ami": "ami-03ed5bd63ba378bd8",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "description": "Amazon Linux 2 AMI*x86_64*HVM*gp2",
+        "root-device-type": "ebs"
+      },
+      "owners": ["137112412989"],
+      "most_recent": true
+    },
     "instance_type": "t2.micro",
     "force_deregister" : true,
     "force_delete_snapshot" : true,
