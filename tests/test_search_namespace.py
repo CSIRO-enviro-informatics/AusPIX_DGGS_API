@@ -5,7 +5,7 @@ import os
 from .data.RoadsExample_geoJason_dggs_result import RoadsExampleResult
 from .data.RoadsExample_geoJason_dggs_polygon_result import RoadsExamplePolygonResult
 from .data.EIT_geojson_example_points_result import points_as_polygon_result, points_as_polygon_with_properties_result
-
+from .data.ComplexPolyBasic_Result import complexPolyBasic_Result
 current_dir = os.path.dirname(__file__)
 print("current_dir", current_dir)
 # use python -m pytest to run this test case
@@ -114,6 +114,13 @@ class TestSequenceFunctions(unittest.TestCase):
             geo_json = json.loads(file.read())
             res = self.client.post('api/search/find_dggs_by_geojson?resolution=10&dggs_as_polygon=True&keep_properties=False', json=geo_json)
             self.assertListEqual(json.loads(res.data)['features'], points_as_polygon_result)
+    def test_find_dggs_cells_by_geojson_complex_polygon(self):
+        with open(os.path.join(current_dir, "data/ComplexPolyBasic.geojson"), "r") as file:
+            geo_json = json.loads(file.read())
+            res = self.client.post('api/search/find_dggs_by_geojson?resolution=10&dggs_as_polygon=True&keep_properties=False', json=geo_json)
+            print(len(json.loads(res.data)['features']), json.loads(res.data)['features'])
+            print(len(complexPolyBasic_Result), complexPolyBasic_Result)
+            self.assertListEqual(json.loads(res.data)['features'], complexPolyBasic_Result)
 if __name__ == '__main__':
     unittest.main()
 

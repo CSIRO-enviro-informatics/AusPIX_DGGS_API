@@ -40,16 +40,21 @@ def get_cells_in_feature(fea, resolution, return_cell_obj=False):
         curr_coords = list(coords(fea))
         for coord in curr_coords:
             cells.append(latlong_to_DGGS(coord, resolution))
-    if isinstance(geom, LineString) or isinstance(geom, MultiLineString): 
+    elif isinstance(geom, LineString) or isinstance(geom, MultiLineString): 
         # return cell object for line
         fea['geometry']['coordinates'] = densify_my_line(fea['geometry']['coordinates'], resolution)
         curr_coords = list(coords(fea))
         cells = line_to_DGGS(curr_coords, resolution)
-    elif isinstance(geom, Polygon) or  isinstance(geom, MultiPolygon):
+    elif isinstance(geom, Polygon):
+        curr_coords = list(coords(fea))
+        thisbbox = bbox(curr_coords)
+        res_cells = cells_in_poly(thisbbox, [fea['geometry']['coordinates']], resolution, return_cell_obj)  
+        cells = [item[0] for item in res_cells]
+    elif isinstance(geom, MultiPolygon):
         # return cell string
         curr_coords = list(coords(fea))
         thisbbox = bbox(curr_coords)
-        res_cells = cells_in_poly(thisbbox, curr_coords, resolution, return_cell_obj)  
+        res_cells = cells_in_poly(thisbbox, fea['geometry']['coordinates'], resolution, return_cell_obj)  
         cells = [item[0] for item in res_cells]
 
     return cells
