@@ -15,11 +15,7 @@ usermod -a -G docker ec2-user
 
 # clone the master branch of the AusPIX_DGGS_API from github locally, this effects "installation" of the AusPIX_DGGS_API on the ec2 machine ready to run
 git clone --single-branch --branch master https://github.com/CSIRO-enviro-informatics/AusPIX_DGGS_API.git
-# move the instance start script to the cloud-init directory - probably not the best way to do things
-mv /tmp/instance.sh  /var/lib/cloud/scripts/per-instance/instance.sh
 # move ssh certs to the directory expected by AusPIX_DIGGS_API docker compose  
 mkdir /home/ec2-user/AusPIX_DGGS_API/certs/
 mv /tmp/wildcard-loci-cat.bundle.pem /home/ec2-user/AusPIX_DGGS_API/certs/
 mv /tmp/wildcard-loci-cat.pem /home/ec2-user/AusPIX_DGGS_API/certs/
-# ready the instance script for execution on instance creation
-chmod +x /var/lib/cloud/scripts/per-instance/instance.sh

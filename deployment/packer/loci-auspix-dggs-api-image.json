@@ -33,11 +33,6 @@
   }],
   "provisioners": [
       {
-        "type": "file",
-        "source": "instance.sh",
-        "destination": "/tmp/instance.sh"
-      },
-      {
          "type": "file",
          "source": "../../../certs/wildcard-loci-cat.pem",
          "destination": "/tmp/wildcard-loci-cat.pem"
