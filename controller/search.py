@@ -157,7 +157,7 @@ class FindDGGSByGeojson(Resource):
             return geojson_obj
 
 find_dggs_cells_by_geojson_parser = reqparse.RequestParser()
-find_dggs_cells_by_geojson_parser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14], help='DGGS Resolution 4 to 12')
+find_dggs_cells_by_geojson_parser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14], help='DGGS Resolution 1 to 14')
 find_dggs_cells_by_geojson_parser.add_argument('geojson', type=dict, location='json')
 
 @api.route('/find_dggs_cells_by_geojson')
