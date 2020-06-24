@@ -13,6 +13,7 @@ from auspixdggs.callablemodules.util import transform_coordinates
 from auspixdggs.callablemodules.util import rdggs
 import json
 import geojson
+import copy
 
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
 find_dggs_by_geojson_parser = reqparse.RequestParser()
@@ -138,6 +139,7 @@ class FindDGGSByGeojson(Resource):
             list_features = []
             for i, cell in enumerate(list_cells):
                 bbox_coords = get_dggs_cell_bbox(cell)
+                print(i, str(cell))
                 geom_obj = Polygon(bbox_coords)
                 if keep_properties == 'True':
                     properties = list_properties[i]
@@ -145,7 +147,7 @@ class FindDGGSByGeojson(Resource):
                 else:
                     properties = {}
                     properties['dggs_cell_id'] = str(cell)
-                feat = Feature(geometry=geom_obj, properties=properties) 
+                feat = Feature(geometry=geom_obj, properties=copy.deepcopy(properties)) 
                 list_features.append(feat)
 
             feature_collection = FeatureCollection(list_features)
