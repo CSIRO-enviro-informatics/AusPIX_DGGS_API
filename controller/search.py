@@ -149,7 +149,7 @@ class FindDGGSByGeojson(Resource):
                 else:
                     properties = {}
                     properties['dggs_cell_id'] = str(cell)
-                feat = Feature(geometry=geom_obj, properties=copy.deepcopy(properties)) 
+                feat = Feature(geometry=geom_obj, properties=properties) 
                 list_features.append(feat)
 
             feature_collection = FeatureCollection(list_features)
