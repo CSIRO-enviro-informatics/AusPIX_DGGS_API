@@ -138,10 +138,13 @@ class FindDGGSByGeojson(Resource):
             list_features = []
             for i, cell in enumerate(list_cells):
                 bbox_coords = get_dggs_cell_bbox(cell)
+                print(i, str(cell))
                 geom_obj = Polygon(bbox_coords)
                 if keep_properties == 'True':
-                    properties = list_properties[i]
+                    properties = {}
                     properties['dggs_cell_id'] = str(cell)
+                    for key in list_properties[i]:
+                        properties[key] = list_properties[i][key]
                 else:
                     properties = {}
                     properties['dggs_cell_id'] = str(cell)
