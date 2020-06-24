@@ -13,7 +13,6 @@ from auspixdggs.callablemodules.util import transform_coordinates
 from auspixdggs.callablemodules.util import rdggs
 import json
 import geojson
-import copy
 
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
 find_dggs_by_geojson_parser = reqparse.RequestParser()
