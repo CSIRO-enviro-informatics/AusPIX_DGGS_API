@@ -177,6 +177,7 @@ class FindDGGSCellsByGeojson(Resource):
             }
 
         cells, list_properties = get_cells_with_property_in_geojson(geojson_obj, args.resolution, False)
+        print(cells)
         cells = reduce_duplicate_cells_2d_array(cells)
         meta = {
             "cells_count": len(cells)
