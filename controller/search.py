@@ -155,7 +155,37 @@ class FindDGGSByGeojson(Resource):
             feature_collection = FeatureCollection(list_features)
             geojson_obj['features'] = feature_collection['features']
             return geojson_obj
-     
+
+find_dggs_cells_by_geojson_parser = reqparse.RequestParser()
+find_dggs_cells_by_geojson_parser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14], help='DGGS Resolution 4 to 12')
+find_dggs_cells_by_geojson_parser.add_argument('geojson', type=dict, location='json')
+
+@api.route('/find_dggs_cells_by_geojson')
+@api.doc(parser=find_dggs_cells_by_geojson_parser)
+class FindDGGSCellsByGeojson(Resource):
+    def post(self):
+        args = find_dggs_cells_by_geojson_parser.parse_args()
+        geojson_obj = geojson.loads(json.dumps(request.json))
+        if not hasattr(geojson_obj, 'is_valid'):
+            return {
+                "error": "geojson is invalid."
+            }
+        if not geojson_obj.is_valid:
+            return {
+                "error": "geojson is invalid.",
+                "detail": geojson_obj.errors()
+            }
+
+        cells, list_properties = get_cells_with_property_in_geojson(geojson_obj, args.resolution, False)
+        cells = reduce_duplicate_cells_2d_array(cells)
+        meta = {
+            "cells_count": len(cells)
+        }
+        return {
+            "meta": meta,
+            "dggs_cells": [str(cell) for cell in cells],
+        }
+
 pointerParser = reqparse.RequestParser()
 pointerParser.add_argument('x', type=float, required=True, help='Coordinate X')
 pointerParser.add_argument('y', type=float, required=True, help='Coordinate Y')
