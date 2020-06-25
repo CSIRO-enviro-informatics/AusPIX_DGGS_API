@@ -156,9 +156,9 @@ class FindDGGSByGeojson(Resource):
             return geojson_obj
      
 pointerParser = reqparse.RequestParser()
-pointerParser.add_argument('x', type=float, required=True, help='Coordinate X')
-pointerParser.add_argument('y', type=float, required=True, help='Coordinate Y')
-pointerParser.add_argument('epsg', type=int, required=True, help='spsg code, such as 4326')
+pointerParser.add_argument('x', type=float, required=True, help='Coordinate X. This uses the notion of "always_xy". See this link for more info https://pyproj4.github.io/pyproj/stable/api/transformer.html#transformer')
+pointerParser.add_argument('y', type=float, required=True, help='Coordinate Y. This uses the notion of "always_xy". See this link for more info https://pyproj4.github.io/pyproj/stable/api/transformer.html#transformer')
+pointerParser.add_argument('epsg', type=int, required=True, help='EPSG code, such as 4326')
 pointerParser.add_argument('resolution', type=int, required=True, choices=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], help='DGGS Resolution 1 to 14')
 
 @api.route('/find_dggs_for_a_point')
