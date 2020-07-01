@@ -304,7 +304,8 @@ textarea {
    function query_dggs_geojson(geojsonData, callback) {
        var dggsResolution = $( "#dggsResolution" ).val();
        var params = {
-         resolution: dggsResolution
+         resolution: dggsResolution,
+         dggs_as_polygon: 'False'
        };
        var strGeojson = JSON.stringify(geojsonData, undefined, 4);
        let query = Object.keys(params)

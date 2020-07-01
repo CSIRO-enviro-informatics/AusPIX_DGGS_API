@@ -40,9 +40,13 @@ def get_cells_in_feature(fea, resolution, return_cell_obj=False):
         curr_coords = list(coords(fea))
         for coord in curr_coords:
             cells.append(latlong_to_DGGS(coord, resolution))
-    elif isinstance(geom, LineString) or isinstance(geom, MultiLineString): 
+    elif isinstance(geom, MultiLineString): 
         # return cell object for line
         fea['geometry']['coordinates'] = densify_my_line(fea['geometry']['coordinates'], resolution)
+        curr_coords = list(coords(fea))
+        cells = line_to_DGGS(curr_coords, resolution)
+    elif isinstance(geom, LineString):
+        fea['geometry']['coordinates'] = densify_my_line([fea['geometry']['coordinates']], resolution)
         curr_coords = list(coords(fea))
         cells = line_to_DGGS(curr_coords, resolution)
     elif isinstance(geom, Polygon):
