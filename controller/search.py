@@ -16,7 +16,7 @@ import geojson
 
 api = Namespace('search', description="Search from DGGS Engine", version="0.1")
 find_dggs_by_geojson_parser = reqparse.RequestParser()
-find_dggs_by_geojson_parser.add_argument('resolution', type=int, required=True, choices=[4,5,6,7,8,9,10,11,12], help='DGGS Resolution 4 to 12')
+find_dggs_by_geojson_parser.add_argument('resolution', type=int, required=True, default=10, choices=[4,5,6,7,8,9,10,11,12], help='DGGS Resolution 4 to 12 (high resolution settings and big areas can take a much longer time)')
 find_dggs_by_geojson_parser.add_argument('dggs_as_polygon', type=str, choices=['False', 'True'], default="True", help='Return geojson with DGGS cells as polygon features when set True (default True), return original geojson object when set False')
 find_dggs_by_geojson_parser.add_argument('keep_properties', type=str, choices=['False', 'True'], default="True", help='Keep the geojson features\' properties at the returned geojson when set True (default True)')
 find_dggs_by_geojson_parser.add_argument('geojson', type=dict, location='json')

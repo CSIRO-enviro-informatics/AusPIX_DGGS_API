@@ -227,7 +227,7 @@ textarea {
               // Push GeoJSON object to collection
               if(! containsObject(geojson, c.features)) {
                   //comment this out as API doesn't handle points yet
-                  //c.features.push(geojson);
+                  c.features.push(geojson);
                   var latlng = layer.getLatLng();
                   query_dggs_for_point(latlng.lng, latlng.lat, function(data) {
                      console.log("in updateDrawnGeojson");
