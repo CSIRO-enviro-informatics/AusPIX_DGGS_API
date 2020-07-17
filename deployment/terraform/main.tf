@@ -11,6 +11,7 @@ resource "aws_instance" "auspix_dggs_api_ec2" {
   ami = data.aws_ami.ec2-ami.id
   instance_type = "t2.micro"
   key_name = aws_key_pair.auspix-dggs-api-key.key_name
+  user_data =  file("instance.sh")
   tags = {
     Name    = "auspix dggs api"
     Project = "Loci"

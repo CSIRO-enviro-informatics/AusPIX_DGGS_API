@@ -3,6 +3,7 @@ version: '3.7'
 services:
   dggsapi:
     build: .
+    restart: always
   caddy:
     image: abiosoft/caddy
     ports:
