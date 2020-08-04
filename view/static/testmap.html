@@ -102,8 +102,9 @@ textarea {
            <option value="11">11</option>
            <option value="12">12</option>
          </select>
+         <button id="queryDGGSGivenResolution">Go</button>
       </div>
-      <div id="loading" class="loading"><p>Loading</p></div>
+      <div id="loading" class="loading"><p>Loading... </p><p style="color: grey">Big areas and fine resolution will take a long time to process. </p></div>
       <pre id="dggscells-display">
       </pre>
     </div>
@@ -347,7 +348,6 @@ textarea {
              callback(cellId);
        });
    }
-   
 
 	var mymap = L.map('mapid').setView([ -35.5523399441562, 148.85101318359375 ], 9);
 
@@ -495,10 +495,16 @@ textarea {
                  useGeojsonFlag = 1; //put geojson flag up
              }
        }); 
-       $('select').on('change', function() {
-          dggsCellSet = new Set();
-          $("#dggscells-display").empty();
-          updateAllResults();
+      //  $('select').on('change', function() {
+      //     dggsCellSet = new Set();
+      //     $("#dggscells-display").empty();
+      //     updateAllResults();
+      //  });
+      
+      $('#queryDGGSGivenResolution').on('click', function() {
+         dggsCellSet = new Set();
+         $("#dggscells-display").empty();
+         updateAllResults();
        });
        hideLoader();
    });
