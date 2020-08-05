@@ -103,8 +103,9 @@ textarea {
            <option value="12">12</option>
          </select>
          <button id="queryDGGSGivenResolution">Go</button>
+         <div id="longProcessTImeMessage" style="color: grey;">DGGS Resolution 4 to 12 - (high resolution settings and big areas can take a much longer time)</div>
       </div>
-      <div id="loading" class="loading"><p>Loading... </p><p style="color: grey">Big areas and fine resolution will take a long time to process. </p></div>
+      <div id="loading" class="loading"><p>Loading... </p></div>
       <pre id="dggscells-display">
       </pre>
     </div>
@@ -495,11 +496,14 @@ textarea {
                  useGeojsonFlag = 1; //put geojson flag up
              }
        }); 
-      //  $('select').on('change', function() {
-      //     dggsCellSet = new Set();
-      //     $("#dggscells-display").empty();
-      //     updateAllResults();
-      //  });
+      $('select').on('change', function() {
+         var dggsResolution = $( "#dggsResolution" ).val();
+         if(dggsResolution > 4){
+            $('#longProcessTImeMessage').show()
+         }else{
+            $('#longProcessTImeMessage').hide()
+         }
+      });
       
       $('#queryDGGSGivenResolution').on('click', function() {
          dggsCellSet = new Set();
