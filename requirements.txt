@@ -8,4 +8,4 @@ Werkzeug
 pygeoj
 shapely
 geojson
-git+https://github.com/CSIRO-enviro-informatics/AusPIX_DGGS.git#egg=AusPIX_DGGS
+git+https://github.com/CSIRO-enviro-informatics/AusPIX_DGGS.git#egg=auspixdggs
