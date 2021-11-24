@@ -1,3 +1,4 @@
+numba
 requests
 matplotlib
 flask
